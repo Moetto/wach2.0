@@ -1,0 +1,9 @@
+apiVersion: v2
+name: wach
+description: Wappuchievements application to help you properly celebrate First of May
+
+type: application
+
+version: 0.1.0
+
+appVersion: "0.0.1"

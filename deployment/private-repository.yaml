@@ -1,0 +1,6 @@
+# Fill this to pull from a private dockerhub repository
+# See DEPLOYMENT.md for usage
+image:
+  repository: DOCKERHUB_USERNAME/REPOSITORY
+imagePullSecrets:
+  - name: regcred

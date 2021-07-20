@@ -1,0 +1,4 @@
+# Fill this to pull from a public dockerhub repository
+# See DEPLOYMENT.md for usage
+image:
+  repository: DOCKERHUB_USERNAME/REPOSITORY

@@ -1,0 +1,83 @@
+openapi: 3.0.0
+info:
+  version: 0.0.1
+  title: Wappuchievements API
+  description: Server API for Wach
+paths:
+  /achievements:
+    get:
+      description: Return a list of tasks a user can achieve
+      responses:
+        '200':
+          description: Successful response
+  /achievements/{id}:
+    parameters:
+      - in: path
+        name: achievementId
+        schema:
+          type: integer
+        required: true
+        description: Numeric Id of the achievement to get
+    get:
+      description: Return a single achievement
+      responses:
+        '200':
+          description: Successful response
+  /achievements/{id}/complete:
+    parameters:
+      - in: path
+        name: achievementId
+        schema:
+          type: integer
+        required: true
+        description: Numeric Id of the achievement to complete
+    post:
+      responses:
+        '200':
+          description: User has already completed the achievement
+        '201':
+          description: Achievement completed
+        '401':
+          description: Login required
+    delete:
+      responses:
+        '204':
+          description: Achievement marked as incomplete for the user
+        '401':
+          description: Login required
+        '404':
+          description: User has not completed the achievement
+  /users:
+    parameters:
+      - in: query
+        name: sortBy
+        schema:
+          type: string
+          enum:
+            - score
+          default: score
+        required: false
+        description: User sorting criteria
+      - in: query
+        name: sortOrder
+        schema:
+          type: string
+          enum:
+            - asc
+            - desc
+        description: User sorting order. Sorted by sortBy
+          * `asc` - Ascending order
+          * `desc` - Descending order
+    get:
+      description: Return all user profile
+      responses:
+        '200':
+          description: All users
+  /users/me:
+    get:
+      description: Return user profile for logged in user
+      responses:
+        '200':
+          description: Currently logged in user
+        '401':
+          description: Login is required to acces current user
