@@ -48,6 +48,7 @@ Selector labels
 {{- define "wach.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "wach.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app: {{ include "wach.name" . }}
 {{- end }}
 
 {{/*

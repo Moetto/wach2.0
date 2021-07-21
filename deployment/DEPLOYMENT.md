@@ -15,6 +15,10 @@ All commands are run in the `deployment` directory
 ### Additional requirements
 [Install kind v 0.11.0](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
+### Automated way
+Run at the repository root:\
+`./gradlew runInCluster`
+
 ### Creating a cluster
 A kind cluster is useful for local testing.
 1. Create a cluster by running:\

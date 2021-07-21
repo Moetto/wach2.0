@@ -21,6 +21,21 @@ jobs:
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
           configuration-cache-enabled: true
+      - name: Load cluster tools
+        uses: engineerd/setup-kind@v0.5.0
+        with:
+          version: v0.11.0
+          skipClusterCreation: true
+      - name: Install a newer curl
+        # Integration tests utilize --retry-all-errors, which is added in curl 7.71.0
+        run: |
+          curl -vL https://github.com/moparisthebest/static-curl/releases/download/v7.78.0/curl-amd64 -o /tmp/curl
+          sudo install /tmp/curl /usr/local/bin/curl
+          echo "/usr/local/bin" >> $GITHUB_PATH
+      - name: Run integration tests
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: integrationTest
       - name: Login to DockerHub
         if: github.ref == 'refs/heads/master'
         uses: docker/login-action@v1
@@ -35,3 +50,15 @@ jobs:
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
           configuration-cache-enabled: true
+      - name: Save helm lint output
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: helm lint results
+          path: deployment/build/helm-lint-results.txt
+      - name: Save integration test output
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: integration-test-logs
+          path: deployment/build/curl-output.txt
