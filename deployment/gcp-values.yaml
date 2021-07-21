@@ -1,3 +1,4 @@
 ingress:
   annotations:
     kubernetes.io/ingress.global-static-ip-name: "wach-static-ip"
+    kubernetes.io/ingress.class: "gce"

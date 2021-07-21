@@ -11,13 +11,12 @@ serviceAccount:
   create: true
 
 service:
-  type: NodePort
   port: 80
 
 ingress:
   paths:
   - path: /
-  annotations: []
+  annotations: {}
 
 imagePullSecrets: []
 
@@ -39,3 +38,9 @@ autoscaling:
   maxReplicas: 2
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
+
+# Enable managed certificates. Does not work locally
+# At least one domain is required with tls. Configure the domains to point at ingress ip address
+tls:
+  enabled: false
+  domains: []

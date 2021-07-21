@@ -8,7 +8,6 @@
 * Create or find a configuration library
 * Implement versioning scripts
 * Add instructions for using a domain name
-* Implement tls
 * Add linter
 * Implement static file serving
 * Tests that deployment works in CI

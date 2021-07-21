@@ -1,0 +1,13 @@
+{{- if .Values.tls.enabled }}
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: {{ include "wach.fullname" . }}
+  labels:
+    {{- include "wach.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.tls.domains }}
+  domains:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

@@ -55,23 +55,23 @@ Enable billing for the account.
 1. Set the desired region:\
 `gcloud config set compute/region europe-north1`
 1. Create a project:\
-`gcloud projects create wach`
+`gcloud projects create my-wach`
 1. Configure the SDK to use the new project:\
-`gcloud config set project wach`
-1. Get your billing account id. Copy the account id you want to use from output:
+`gcloud config set project my-wach`
+1. Get your billing account id. Copy the account id you want to use from output:\
 `gcloud beta billing accounts list`
 1. Link the new project to your billing account:\
-`gcloud beta billing projects link wach --billing-account=BILLING-ACCOUNT-ID`
-1. Enable required APIs, i.e. compute for a static IP and container for a cluster:\
+`gcloud beta billing projects link my-wach --billing-account=BILLING-ACCOUNT-ID`
+1. Enable required APIs. Compute is required for a static IP and container for a cluster:\
 `gcloud services enable compute.googleapis.com container.googleapis.com`
 
 ### Creating a cluster
 1. Reserve a static IP by running:\
-`gcloud compute areachddresses create wach-static-ip --global`
+`gcloud compute addresses create wach-static-ip --global`
 1. Create a cluster using rapid release channel to get 1.20. Run:\
-`gcloud container clusters create-auto wach --cluster-version=1.20 --release-channel=rapid`
+`gcloud container clusters create-auto wach --cluster-version=1.21 --release-channel=rapid`
 1. Install wach:\
-`helm install my-wach wach -f gcp-values.yaml`
+`helm install wach wach -f gcp-values.yaml`
 1. Get IP from output. It'll take a while for the Ingress magic to happen:\
 `kubectl get ingress wach`
 1. If you get errors, try waiting up to ten minutes. The errors may change during this time.
@@ -89,13 +89,13 @@ Re-configure kubectl to use the cluster:\
 a). If using public repository: \
    Copy public-repository.yaml under `local` and populate username and repository.\
    Run:\
-   `helm install my-wach wach --set image.tag=TAG -f local/public-repository.yaml -f gcp-values.yaml` \
+   `helm install wach wach --set image.tag=TAG -f local/public-repository.yaml -f gcp-values.yaml` \
 b) If using a private repository:\
     Copy private-repository.yaml under `local` and populate username and repository.\
    Run:
    ```shell
    kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v2/ --docker-username=DOCKERHUB_USERNAME --docker-password=DOCKERHUB_ACCESS_TOKEN --docker-email=DOCKERHUB_EMAIL
-   helm install my-wach wach --set image.tag=TAG -f gcp-values.yaml -f local/private-repository.yaml
+   helm install wach wach --set image.tag=TAG -f gcp-values.yaml -f local/private-repository.yaml
    ```
 
 ### Cleaning up
@@ -104,6 +104,6 @@ Deleting the project will remove everything created in this manual:\
 
 One free cluster is free in GCP. By removing the static IP and the deployment the cluster should be free, but stay available. Run:\
 ```
-helm uninstall my-wach
+helm uninstall wach
 gcloud compute addresses delete wach-static-ip --global --quiet
 ```
