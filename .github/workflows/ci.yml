@@ -50,6 +50,12 @@ jobs:
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
           configuration-cache-enabled: true
+      - name: Save test results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test results
+          path: app/build/reports/tests
       - name: Save helm lint output
         if: always()
         uses: actions/upload-artifact@v2
