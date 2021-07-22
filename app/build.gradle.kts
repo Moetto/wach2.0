@@ -21,7 +21,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     }
 }
 
-
 tasks {
     val dockerBuild by registering {
         description = "Build a docker image"

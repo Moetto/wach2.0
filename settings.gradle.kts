@@ -9,3 +9,4 @@
 
 rootProject.name = "wach2.0"
 include("app")
+include("deployment")
