@@ -1,10 +1,14 @@
+import java.io.FileOutputStream
+import java.io.ByteArrayOutputStream
+
 plugins {
     // Base plugin provides default lifecycle tasks and their dependency order
     base
+    id("wach2.kotlin-common-conventions")
 }
 
 dependencies {
-    project(":app")
+    implementation(project(path = ":app", configuration = "dockerImageConfiguration"))
 }
 
 tasks {
@@ -17,7 +21,7 @@ tasks {
         doLast {
             val res = exec {
                 commandLine("helm", "lint", "../deployment/wach")
-                standardOutput = java.io.FileOutputStream(output)
+                standardOutput = FileOutputStream(output)
                 isIgnoreExitValue = true
             }
             if (res.exitValue != 0) {
@@ -35,7 +39,7 @@ tasks {
         doLast {
             val res = exec {
                 commandLine("sh", "-c", "kind get clusters | grep ^wach$")
-                standardOutput = java.io.ByteArrayOutputStream()
+                standardOutput = ByteArrayOutputStream()
                 isIgnoreExitValue = true
             }
             if (res.exitValue == 0) {
@@ -49,7 +53,7 @@ tasks {
         }
     }
 
-    val tearDownCluster by registering {
+    register("tearDownCluster") {
         description = "Tear down the kind cluster named wach"
         group = "Application"
         doLast {
@@ -67,7 +71,7 @@ tasks {
         doLast {
             val helmHistory = exec {
                 commandLine("helm history wach".split(" "))
-                standardOutput = java.io.ByteArrayOutputStream()
+                standardOutput = ByteArrayOutputStream()
                 isIgnoreExitValue = true
             }
             if (helmHistory.exitValue == 0) {
@@ -100,7 +104,7 @@ tasks {
         description = "Run integration tests against a local kind cluster"
         group = "Verification"
         dependsOn(runInCluster)
-        val output = java.io.FileOutputStream("$buildDir/curl-output.txt")
+        val output = FileOutputStream("$buildDir/curl-output.txt")
         doLast {
             exec {
                 commandLine("curl", "-vf", "--retry", "10", "--retry-all-errors", "localhost")

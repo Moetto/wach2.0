@@ -1,3 +1,7 @@
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
+
 plugins {
     id("wach2.kotlin-application-conventions")
 }
@@ -15,32 +19,35 @@ application {
     mainClass.set("dev.t3mu.wach.ServerKt")
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "15"
+val dockerBuild by tasks.registering {
+    description = "Build a docker image"
+    inputs.file("$buildDir/distributions/app.tar")
+    inputs.file("Dockerfile")
+    val imageHashFile = "$buildDir/image-hash"
+    outputs.file(imageHashFile)
+    outputs.upToDateWhen {
+        val findHash = ProcessBuilder().command("sh", "-c", "docker image inspect wach:dev | jq '.[0].Id'").start()
+        val foundImageHash = String(findHash.inputStream.readAllBytes()).trim()
+        var previousHash: String? = null
+        try {
+            previousHash = String(FileInputStream(File(imageHashFile)).readAllBytes()).trim()
+        } catch (e: IOException) {
+
+        }
+        foundImageHash == previousHash
+    }
+    doLast {
+        exec {
+            commandLine("docker", "build", ".", "-t", "wach:dev")
+        }
+        // Save the image hash so that gradle caches the step
+        exec {
+            commandLine("bash", "-c", "docker image inspect wach:dev | jq '.[0].Id' > build/image-hash")
+        }
     }
 }
 
 tasks {
-    val dockerBuild by registering {
-        description = "Build a docker image"
-        outputs.cacheIf { true }
-        inputs.file("build/distributions/app.tar")
-        inputs.file("Dockerfile")
-        outputs.file("build/image-hash")
-        doLast {
-            exec {
-                commandLine("docker", "build", ".", "-t", "wach:dev")
-            }
-            // Save the image hash so that gradle caches the step
-            exec {
-                commandLine ("bash", "-c", "docker image inspect wach:dev | jq '.[0].Id' > build/image-hash")
-            }
-        }
-    }
-    build {
-        finalizedBy(dockerBuild)
-    }
     register("publish") {
         description = "Publish the docker image built by step build. Use repository from settings.gradle."
         dependsOn(":app:dockerBuild")
@@ -56,5 +63,16 @@ tasks {
                 commandLine("docker", "push", "$repository:$tag")
             }
         }
+    }
+}
+
+val dockerImageConfiguration: Configuration by configurations.creating {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+}
+
+artifacts {
+    add("dockerImageConfiguration", File("$buildDir/image-hash")) {
+        builtBy(dockerBuild)
     }
 }

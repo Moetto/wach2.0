@@ -39,12 +39,21 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
-tasks.test {
-    // Use junit platform for unit tests.
-    useJUnitPlatform()
-}
+tasks {
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "15"
+        }
+    }
 
-tasks.withType<AbstractArchiveTask>().configureEach {
-    isPreserveFileTimestamps = false
-    isReproducibleFileOrder = true
+    // Remove timestamps and always use same file order in jars to make builds reproducible
+    withType<AbstractArchiveTask>().configureEach {
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
+    }
+
+    test {
+        // Use junit platform for unit tests.
+        useJUnitPlatform()
+    }
 }
