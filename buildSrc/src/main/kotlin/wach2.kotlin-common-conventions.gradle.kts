@@ -43,3 +43,8 @@ tasks.test {
     // Use junit platform for unit tests.
     useJUnitPlatform()
 }
+
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
