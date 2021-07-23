@@ -8,5 +8,6 @@
  */
 
 rootProject.name = "wach2.0"
+include("api-doc")
 include("app")
 include("deployment")

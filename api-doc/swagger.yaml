@@ -1,0 +1,245 @@
+openapi: 3.0.0
+info:
+  version: 0.1.0
+  title: Wappuchievements API
+  description: Server API for Wach
+paths:
+  /achievements:
+    get:
+      description: Return a list of tasks a user can achieve
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AchievementArray'
+  /achievements/{achievementId}:
+    parameters:
+      - $ref: '#/components/parameters/AchievementId'
+    get:
+      description: Return a single achievement
+      responses:
+        200:
+          $ref: '#/components/responses/Achievement'
+        404:
+          $ref: '#/components/responses/NotFound'
+  /users:
+    parameters:
+      - in: query
+        name: sortBy
+        schema:
+          type: string
+          enum:
+            - score
+          default: score
+        required: false
+        description: User sorting criteria
+      - in: query
+        name: sortOrder
+        schema:
+          type: string
+          enum:
+            - asc
+            - desc
+        description: User sorting order. Sorted by sortBy
+          * `asc` - Ascending order
+          * `desc` - Descending order
+    get:
+      description: Return all user profiles
+      responses:
+        200:
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      description: Get a single user
+      responses:
+        200:
+          $ref: '#/components/responses/User'
+        404:
+          $ref: '#/components/responses/NotFound'
+  /users/{userId}/completed-achievements:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+  /users/me:
+    get:
+      description: Return user profile for the logged in user
+      responses:
+        200:
+          $ref: '#/components/responses/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /users/me/completed-achievements:
+    get:
+      description: Get a list of all the achievements, completed by the currently logged in user
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _links:
+                      type: object
+                      properties:
+                        href:
+                          description: A link to self
+                          type: string
+                        achievement:
+                          description: A link to to the completed achievement
+                          type: string
+                        user:
+                          description: A link to the user that has completed the achievement
+                    completionDate:
+                      description: Date when the achievement was completed
+                      type: date
+                      format: date-time
+              example: [
+                {
+                  "_links": [
+                    "self": "/users/7/completed-achievements/3",
+                    "achievement": "/achievements/3",
+                    "user": "/users/7"
+                  ],
+                  "completionDate": "2017-07-21T17:32:28Z"
+                }
+              ]
+  /users/me/completed-achievements/{achievementId}:
+    parameters:
+      - $ref: '#/components/parameters/AchievementId'
+    post:
+      description:
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      description: Id of the completed achievement
+                      type: string
+                    completionDate:
+                      description: Date when the achievement was completed
+                      type: date
+components:
+  parameters:
+    AchievementId:
+      in: path
+      name: achievementId
+      schema:
+        type: integer
+      required: true
+      description: The id of the achievement to get
+    UserId:
+      in: path
+      name: userId
+      required: true
+      schema:
+        type: integer
+  schemas:
+    Achievement:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - achievement
+        title:
+          type: string
+          description: Title of the achievement
+        points:
+          type: integer
+          description: How many points are awarded for completing the achievement
+      example:
+        {
+          "title": "Example achievement",
+          "points": 100
+        }
+    AchievementArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/Achievement'
+      example:
+        [
+          {
+            "title": Example achievement nr. 1",
+            "points": 100
+          },
+          {
+            "title": Example achievement nr. 2",
+            "points": 20
+          }
+        ]
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        _links:
+          type: array
+          items:
+            properties:
+              href:
+                type: string
+                description: A link to self
+        name:
+          type: string
+        imageUrl:
+          type: string
+      example:
+        {
+          "id": 7,
+          "_links": [
+            "href": "/users/7"
+          ],
+          "name": "Erkki Esimerkki",
+          "imageUrl": "/static/users/7.png"
+        }
+    Error:
+      type: object
+      properties:
+        reason:
+          type: string
+      example: {
+        "reason": "No such user"
+      }
+  responses:
+    Achievement:
+      description: A single achievemnt
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Achievement'
+    User:
+      description: A user profile
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Login is required to do the action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

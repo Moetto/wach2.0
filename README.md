@@ -11,6 +11,7 @@ production ready. Until then, I'll work on whatever catches my fancy.
 * Java 15 jdk. Set `JAVA_HOME` environment variable to point at a Java 15 jdk.
 * Docker. User must be able to run docker without sudo, usually by being in group `docker`
 * jq
+* [swagger-cli](https://github.com/APIDevTools/swagger-cli)
 
 ### Build
 Run:\
