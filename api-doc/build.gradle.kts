@@ -7,7 +7,7 @@ plugins {
 
 tasks {
     openApiValidate {
-        inputSpec.set("swagger.yaml")
+        inputSpec.set("$projectDir/swagger.yaml")
     }
 
     check {
