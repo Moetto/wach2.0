@@ -1,0 +1,396 @@
+openapi: 3.0.3
+info:
+  version: 0.1.0
+  title: Wappuchievements API
+  description: Server API for Wach
+paths:
+  /achievements:
+    summary: Get achievemetns
+    get:
+      operationId: get /achievements
+      description: Return a list of achievements
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AchievementArray'
+  /achievements/{achievementId}:
+    parameters:
+      - $ref: '#/components/parameters/AchievementId'
+    get:
+      operationId: get /achievements/{achievementId}
+      description: Return a single achievement
+      responses:
+        200:
+          $ref: '#/components/responses/Achievement'
+        404:
+          $ref: '#/components/responses/NotFound'
+  /achievements/{achievementId}/completed-achievements:
+    parameters:
+      - $ref: '#/components/parameters/AchievementId'
+    description: Get all completions for given achievements
+    get:
+      operationId: get /achievements/{achievementId}/completed-achievements
+      responses:
+        200:
+          $ref: '#/components/responses/CompletedAchievementList'
+        404:
+          $ref: '#/components/responses/NotFound'
+    post:
+      operationId: post /achievements/{achievementId}/completed-achievements
+      responses:
+        201:
+          $ref: '#/components/responses/CompletedAchievement'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: delete /achievements/{achievementId}/completed-achievements
+      description: Cancel achievement completion
+      responses:
+        204:
+          description: Achievement completion cancelled
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+  /users:
+    parameters:
+      - in: query
+        name: sortBy
+        description: User sorting criteria
+        schema:
+          type: string
+          enum:
+            - score
+          default: score
+        required: false
+      - in: query
+        name: sortOrder
+        description: User sorting order. Sorted by sortBy
+          * `asc` - Ascending order
+          * `desc` - Descending order
+        schema:
+          type: string
+          enum:
+            - asc
+            - desc
+    get:
+      operationId: get /users
+      description: Return all user profiles
+      responses:
+        200:
+          $ref: '#/components/responses/UserList'
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      operationId: get /users/{userId}
+      description: Get a single user
+      responses:
+        200:
+          $ref: '#/components/responses/User'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+  /users/{userId}/completed-achievements:
+    description: Get a list of all the achievements, completed by the given user
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      operationId: get /users/{userId}/completed-achievements
+      responses:
+        200:
+          $ref: '#/components/responses/CompletedAchievementList'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+  /users/{userId}/completed-achievements/{completedAchievementId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - $ref: '#/components/parameters/AchievementId'
+    get:
+      operationId: get /users/{userId}/completed-achievements/{completedAchievementId}
+      responses:
+        200:
+          $ref: '#/components/responses/CompletedAchievement'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      operationId: delete /users/{userId}/completed-achievements/{completedAchievementId}
+      description: Cancel achievement completion
+      responses:
+        204:
+          description: Achievement completion cancelled
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+  /completed-achievements:
+    description: Get all completed achievements
+    get:
+      operationId: get /completed-achievements
+      responses:
+        200:
+          $ref: '#/components/responses/CompletedAchievementList'
+
+components:
+  parameters:
+    AchievementId:
+      in: path
+      name: achievementId
+      schema:
+        type: integer
+      required: true
+      description: The id of the achievement to get
+    UserId:
+      in: path
+      name: userId
+      required: true
+      description: Either a numerical id, or special value "me", which refers to the logged in user
+      schema:
+        oneOf:
+          - type: integer
+          - type: string
+            enum:
+              - me
+  schemas:
+    Achievement:
+      type: object
+      required:
+        - _links
+        - id
+        - title
+        - points
+      properties:
+        _links:
+          type: object
+          required:
+            - href
+          properties:
+            href:
+              type: string
+              description: A link to self
+            required-by:
+              type: array
+              description: A list linking to each achievement that requires this to be completed
+              items:
+                type: string
+            requires:
+              type: array
+              description: A list linking to each achievement that is required to complete this
+              items:
+                type: string
+        type:
+          type: string
+          enum:
+            - achievement
+        title:
+          type: string
+          description: Title of the achievement
+        points:
+          type: integer
+          description: How many points are awarded for completing the achievement
+      example:
+        {
+          "type": "achievement",
+          "_links": {
+            "href": "/achievements/13",
+            "required-by": [
+               "/achievement/15",
+            ],
+            "requires": [
+              "/achievement/10"
+            ]
+          },
+          "id": 13,
+          "title": "Example achievement",
+          "points": 100
+        }
+    AchievementArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/Achievement'
+      example:
+        [
+          {
+            "title": Example achievement nr. 1",
+            "points": 100
+          },
+          {
+            "title": Example achievement nr. 2",
+            "points": 20
+          }
+        ]
+    User:
+      type: object
+      required:
+        - id
+        - _links
+        - name
+        - imageUrl
+      properties:
+        id:
+          type: string
+        _links:
+          type: object
+          properties:
+            href:
+              type: string
+              description: A link to self
+        name:
+          type: string
+        imageUrl:
+          type: string
+      example:
+        {
+          "id": 7,
+          "_links": {
+            "href": "/users/7"
+          },
+          "name": "Erkki Esimerkki",
+          "imageUrl": "/static/users/7.png"
+        }
+    UserArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
+      example:
+        [
+          {
+          "id": 7,
+          "_links": {
+            "href": "/users/7"
+          },
+          "name": "Erkki Esimerkki",
+          "imageUrl": "/static/users/7.png"
+          },
+          {
+            "id": 8,
+            "_links": {
+              "href": "/users/8"
+            },
+            "name": "Elina Esimerkki",
+            "imageUrl": "/static/users/8.png"
+          },
+        ]
+    CompletedAchievement:
+      type: object
+      required:
+        - _links
+        - userId
+        - achievementId
+        - completionDate
+      properties:
+        _links:
+          type: object
+          required:
+            - href
+            - achievement
+            - user
+          properties:
+            href:
+              description: A link to self
+              type: string
+            achievement:
+              description: A link to to the completed achievement
+              type: string
+            user:
+              description: A link to the user that has completed the achievement
+        userId:
+          description: Id of the user who completed the achievement
+          type: number
+        achievementId:
+          description: Id of the completed achievement
+          type: number
+        completionDate:
+          description: Date when the achievement was completed
+          type: string
+          format: date-time
+      example:
+        {
+          "_links": [
+              "self": "/users/7/completed-achievements/3",
+              "achievement": "/achievements/3",
+              "user": "/users/7"
+          ],
+          "userId": 7,
+          "achievementId": 3,
+          "completionDate": "2017-07-21T17:32:28Z"
+        }
+    CompletedAchievementArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/CompletedAchievement'
+      example: [
+        {
+          "_links": [
+              "self": "/users/7/completed-achievements/3",
+              "achievement": "/achievements/3",
+              "user": "/users/7"
+          ],
+          "userId": 7,
+          "achievementId": 3,
+          "completionDate": "2017-07-21T17:32:28Z"
+        }
+    ]
+    Error:
+      type: object
+      properties:
+        reason:
+          type: string
+      example: {
+        "reason": "No such user"
+      }
+  responses:
+    Achievement:
+      description: A single achievemnt
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Achievement'
+    AchievementList:
+      description: A list of achievements
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AchievementArray'
+    User:
+      description: A user profile
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    UserList:
+      description: A list of users
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserArray'
+    CompletedAchievement:
+      description: A completed achievement object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CompletedAchievement'
+    CompletedAchievementList:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CompletedAchievementArray'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Login is required to do the action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
