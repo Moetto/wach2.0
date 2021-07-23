@@ -10,7 +10,16 @@ tasks {
         inputSpec.set("$projectDir/swagger.yaml")
     }
 
+    openApiGenerate {
+        inputSpec.set("$projectDir/swagger.yaml")
+        generatorName.set("kotlin-vertx")
+    }
+
     check {
         dependsOn(openApiValidate)
+    }
+
+    build {
+        finalizedBy(openApiGenerate)
     }
 }
