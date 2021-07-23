@@ -43,6 +43,8 @@ paths:
       responses:
         201:
           $ref: '#/components/responses/CompletedAchievement'
+        400:
+          $ref: '#/components/responses/BadRequestCompleteAchievement'
         401:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -174,16 +176,6 @@ components:
             href:
               type: string
               description: A link to self
-            required-by:
-              type: array
-              description: A list linking to each achievement that requires this to be completed
-              items:
-                type: string
-            requires:
-              type: array
-              description: A list linking to each achievement that is required to complete this
-              items:
-                type: string
         type:
           type: string
           enum:
@@ -194,21 +186,53 @@ components:
         points:
           type: integer
           description: How many points are awarded for completing the achievement
+        required-by:
+          type: array
+          description: A list of achievements that require this achievement to be completed first
+          items:
+            type: object
+            required:
+              - id
+              - href
+            properties:
+              id:
+                type: string
+                description: Id of the achievement
+              href:
+                type: string
+                description: A link to the achievement
+        requires:
+          type: array
+          description: A list of achievements that require this achievement to be completed first
+          items:
+            type: object
+            required:
+              - id
+              - href
+            properties:
+              id:
+                type: string
+                description: Id of the achievement
+              href:
+                type: string
+                description: A link to the achievement
       example:
         {
           "type": "achievement",
           "_links": {
-            "href": "/achievements/13",
-            "required-by": [
-               "/achievement/15",
-            ],
-            "requires": [
-              "/achievement/10"
-            ]
+            "href": "/achievements/13"
           },
           "id": 13,
           "title": "Example achievement",
-          "points": 100
+          "points": 100,
+          "required-by": [ {
+             "id": 15,
+             "href": "/achievement/15"
+          } ],
+          "requires": [ {
+            "id": 10,
+            "href": "/achievement/10"
+          } ]
         }
     AchievementArray:
       type: array
@@ -217,12 +241,19 @@ components:
       example:
         [
           {
-            "title": Example achievement nr. 1",
+            "type": "achievement",
+            "_links": {
+              "href": "/achievements/13",
+              "required-by": [
+                  "/achievement/15",
+              ],
+              "requires": [
+                  "/achievement/10"
+              ]
+            },
+            "id": 13,
+            "title": "Example achievement",
             "points": 100
-          },
-          {
-            "title": Example achievement nr. 2",
-            "points": 20
           }
         ]
     User:
@@ -296,10 +327,10 @@ components:
               description: A link to self
               type: string
             achievement:
-              description: A link to to the completed achievement
+              description: A link to to the achievement that was completed
               type: string
             user:
-              description: A link to the user that has completed the achievement
+              description: A link to the user that completed the achievement
         userId:
           description: Id of the user who completed the achievement
           type: number
@@ -382,6 +413,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/CompletedAchievementArray'
+    BadRequestCompleteAchievement:
+      description: Required achievement is not completed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     NotFound:
       description: Resource not found
       content:
