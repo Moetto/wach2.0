@@ -7,16 +7,16 @@ plugins {
 
 tasks {
     openApiValidate {
-        inputSpec.set("$projectDir/swagger.yaml")
+        inputSpec.set("$projectDir/openapi.yaml")
     }
 
     openApiGenerate {
-        inputSpec.set("$projectDir/swagger.yaml")
-        generatorName.set("kotlin-vertx")
+        inputSpec.set("$projectDir/openapi.yaml")
+        generatorName.set("html")
     }
 
     check {
-        dependsOn(openApiValidate)
+        finalizedBy(openApiValidate)
     }
 
     build {
