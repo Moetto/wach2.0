@@ -5,7 +5,7 @@ info:
   description: Server API for Wach
 paths:
   /achievements:
-    summary: Get achievemetns
+    summary: All achievements
     get:
       operationId: get /achievements
       description: Return a list of achievements
@@ -28,19 +28,24 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
   /achievements/{achievementId}/completed-achievements:
+    description: Get all completions for given the achievement
     parameters:
       - $ref: '#/components/parameters/AchievementId'
-    description: Get all completions for given achievements
     get:
-      operationId: get /achievements/{achievementId}/completed-achievements
+      operationId: get /achievements/{achievementId}/completions
       responses:
         200:
           $ref: '#/components/responses/CompletedAchievementList'
         404:
           $ref: '#/components/responses/NotFound'
     post:
-      operationId: post /achievements/{achievementId}/completed-achievements
+      operationId: post /achievements/{achievementId}/completions
+      description: Complete the achievement as the logged in user, or add a completion if already completed
+      parameters:
+        - $ref: '#/components/parameters/AchievementId'
       responses:
+        200:
+          $ref: '#/components/responses/CompletedAchievement'
         201:
           $ref: '#/components/responses/CompletedAchievement'
         400:
@@ -49,21 +54,11 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
-    delete:
-      operationId: delete /achievements/{achievementId}/completed-achievements
-      description: Cancel achievement completion
-      responses:
-        204:
-          description: Achievement completion cancelled
-        401:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
   /users:
     parameters:
       - in: query
         name: sortBy
-        description: User sorting criteria
+        description: User sorting criteria.
         schema:
           type: string
           enum:
@@ -72,7 +67,7 @@ paths:
         required: false
       - in: query
         name: sortOrder
-        description: User sorting order. Sorted by sortBy
+        description: User sorting order. Sorted by parameter sortBy.
           * `asc` - Ascending order
           * `desc` - Descending order
         schema:
@@ -110,7 +105,7 @@ paths:
           $ref: '#/components/responses/CompletedAchievementList'
         401:
           $ref: '#/components/responses/Unauthorized'
-  /users/{userId}/completed-achievements/{completedAchievementId}:
+  /users/{userId}/completed-achievements/{achievementId}:
     parameters:
       - $ref: '#/components/parameters/UserId'
       - $ref: '#/components/parameters/AchievementId'
@@ -171,11 +166,17 @@ components:
         _links:
           type: object
           required:
-            - href
+            - self
+            - completions
           properties:
-            href:
+            self:
               type: string
+              format: uri
               description: A link to self
+            completions:
+              type: string
+              format: uri
+              description: A link to a list of completions for the achievement
         type:
           type: string
           enum:
@@ -193,12 +194,12 @@ components:
             type: object
             required:
               - id
-              - href
+              - self
             properties:
               id:
                 type: string
                 description: Id of the achievement
-              href:
+              self:
                 type: string
                 description: A link to the achievement
         requires:
@@ -208,30 +209,31 @@ components:
             type: object
             required:
               - id
-              - href
+              - self
             properties:
               id:
                 type: string
                 description: Id of the achievement
-              href:
+              self:
                 type: string
                 description: A link to the achievement
       example:
         {
           "type": "achievement",
           "_links": {
-            "href": "/achievements/13"
+            "self": "/achievements/13",
+            "completions": "/achievements/13/completions"
           },
           "id": 13,
           "title": "Example achievement",
           "points": 100,
           "required-by": [ {
              "id": 15,
-             "href": "/achievement/15"
+             "self": "/achievement/15"
           } ],
           "requires": [ {
             "id": 10,
-            "href": "/achievement/10"
+            "self": "/achievement/10"
           } ]
         }
     AchievementArray:
@@ -243,7 +245,7 @@ components:
           {
             "type": "achievement",
             "_links": {
-              "href": "/achievements/13",
+              "self": "/achievements/13",
               "required-by": [
                   "/achievement/15",
               ],
@@ -269,9 +271,14 @@ components:
         _links:
           type: object
           properties:
-            href:
+            self:
               type: string
+              format: uri
               description: A link to self
+            completed-achievements:
+              type: string
+              format: uri
+              description: A list of achievements that this user has completed
         name:
           type: string
         imageUrl:
@@ -280,7 +287,8 @@ components:
         {
           "id": 7,
           "_links": {
-            "href": "/users/7"
+            "self": "/users/7",
+            "completed-achievements": "/users/7/completed-achievements"
           },
           "name": "Erkki Esimerkki",
           "imageUrl": "/static/users/7.png"
@@ -289,25 +297,6 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/User'
-      example:
-        [
-          {
-          "id": 7,
-          "_links": {
-            "href": "/users/7"
-          },
-          "name": "Erkki Esimerkki",
-          "imageUrl": "/static/users/7.png"
-          },
-          {
-            "id": 8,
-            "_links": {
-              "href": "/users/8"
-            },
-            "name": "Elina Esimerkki",
-            "imageUrl": "/static/users/8.png"
-          },
-        ]
     CompletedAchievement:
       type: object
       required:
@@ -319,11 +308,11 @@ components:
         _links:
           type: object
           required:
-            - href
+            - self
             - achievement
             - user
           properties:
-            href:
+            self:
               description: A link to self
               type: string
             achievement:
@@ -356,18 +345,6 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/CompletedAchievement'
-      example: [
-        {
-          "_links": [
-              "self": "/users/7/completed-achievements/3",
-              "achievement": "/achievements/3",
-              "user": "/users/7"
-          ],
-          "userId": 7,
-          "achievementId": 3,
-          "completionDate": "2017-07-21T17:32:28Z"
-        }
-    ]
     Error:
       type: object
       properties:

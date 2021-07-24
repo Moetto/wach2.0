@@ -20,6 +20,12 @@ dependencies {
         implementation("io.vertx:vertx-web:4.0.3")
         implementation("io.vertx:vertx-lang-kotlin:4.0.3")
 
+        implementation("com.github.fge:json-schema-validator:2.2.6")
+        implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.4")
+
+        implementation("io.swagger.codegen.v3:swagger-codegen-cli:3.0.26")
+        implementation("org.webjars:swagger-ui:3.10.0")
+
         testImplementation("io.vertx:vertx-junit5:4.0.3")
         testImplementation("io.vertx:vertx-web-client:4.0.3")
     }

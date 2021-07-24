@@ -2,24 +2,31 @@ plugins {
     // Base plugin provides default lifecycle tasks and their dependency order
     base
     id("wach2.kotlin-common-conventions")
-    id ("org.openapi.generator") version "5.2.0"
+    id("org.hidetake.swagger.generator")
+}
+
+dependencies {
+    swaggerCodegen("io.swagger.codegen.v3:swagger-codegen-cli:3.0.26")
+    swaggerUI("org.webjars:swagger-ui:3.10.0")
 }
 
 tasks {
-    openApiValidate {
-        inputSpec.set("$projectDir/openapi.yaml")
+    validateSwagger {
+        swaggerSources {
+            inputFile = file("$projectDir/openapi.yaml")
+        }
     }
-
-    openApiGenerate {
-        inputSpec.set("$projectDir/openapi.yaml")
-        generatorName.set("html")
+    generateSwaggerUI {
+        swaggerSources {
+            inputFile = file("$projectDir/openapi.yaml")
+        }
     }
 
     check {
-        finalizedBy(openApiValidate)
+        dependsOn(validateSwagger)
     }
 
     build {
-        finalizedBy(openApiGenerate)
+        dependsOn(generateSwaggerUI)
     }
 }

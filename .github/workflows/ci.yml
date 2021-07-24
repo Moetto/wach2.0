@@ -67,7 +67,12 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: openapi validation results
-          path: api-doc/build/openapi-validation.txt
+          path: api-doc/build/swagger-validation.txt
+      - name: Save swagger ui
+        if: always()
+        with:
+          name: swagger ui
+          path: api-doc/build/swagger-ui
       - name: Save integration test output
         if: always()
         uses: actions/upload-artifact@v2
