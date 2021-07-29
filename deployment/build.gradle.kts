@@ -46,7 +46,7 @@ tasks {
                 logger.info("""Cluster named "wach" already exists""")
             } else {
                 exec {
-                    workingDir = File("$(buildDir)/..")
+                    workingDir = File("$projectDir")
                     commandLine("kind create cluster --name wach --config kind-cluster-config.yaml".split(" "))
                 }
             }
@@ -58,7 +58,7 @@ tasks {
         group = "Application"
         doLast {
             exec {
-                workingDir = File("$(buildDir)/..")
+                workingDir = File("$projectDir")
                 commandLine("kind delete cluster --name wach".split(" "))
             }
         }
@@ -78,23 +78,21 @@ tasks {
                 logger.info("Wach is already installed")
             } else {
                 exec {
-                    commandLine("kind load docker-image wach:dev --name wach".split(" "))
-                }
-                exec {
                     commandLine(
-                        "kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
-                            .split(" ")
+                        "sh", "-c",
+                        """
+                        docker tag wach:dev t3mu/wach:dev
+                        kind load docker-image t3mu/wach:dev --name wach
+                        """
                     )
                 }
                 exec {
-                    commandLine(
-                        "kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=90s"
-                            .split(" ")
-                    )
+                    workingDir = File("$projectDir")
+                    commandLine("scripts/install-and-wait-for-nginx-ingress.sh")
                 }
                 exec {
                     workingDir = File("$(buildDir)/..")
-                    commandLine("helm install wach wach -f dev-values.yaml".split(" "))
+                    commandLine("helm install wach wach".split(" "))
                 }
             }
         }

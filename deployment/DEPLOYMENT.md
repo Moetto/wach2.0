@@ -23,22 +23,17 @@ Run at the repository root:\
 A kind cluster is useful for local testing.
 1. Create a cluster by running:\
 `kind create cluster --name wach --config kind-cluster-config.yaml`
-1. Install ingress. At least Ingress NGINX works. Here's how to install as explained in kind tutorials:
-```shell
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
-```
+1. Install ingress. At least Ingress NGINX works. Install it using provided script:\
+`./scripts/install-and-wait-for-nginx-ingress.sh`
    
 ### Installing wach
 1. Build an image:\
 `../gradlew build -p ..`
 1. Load the image into cluster:\
-`kind load docker-image wach:dev --name wach`
+`docker tag wach:dev t3mu/wach:dev`\
+`kind load docker-image t3mu/wach:dev --name wach`
 1. Install wach charts to cluster by running:\
-`helm install wach wach -f dev-values.yaml`
+`helm install wach wach`
 1. Access at the server [http://localhost](http://localhost)
  
 ### Useful commands
