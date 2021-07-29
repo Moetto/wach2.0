@@ -11,7 +11,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
     // The plugin is not released with OAS3 support, even though it exists in master
-    implementation(files("/home/t3mu/Projects/gradle-swagger-generator-plugin/build/libs/gradle-swagger-generator-plugin-SNAPSHOT.jar"))
+    implementation(files("libs/gradle-swagger-generator-plugin-SNAPSHOT.jar"))
     // Used by the plugin
     implementation("com.github.fge:json-schema-validator:2.2.6")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.4")
