@@ -11,11 +11,7 @@ paths:
       description: Return a list of achievements
       responses:
         200:
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AchievementArray'
+          $ref: '#/components/responses/AchievementList'
   /achievements/{achievementId}:
     parameters:
       - $ref: '#/components/parameters/AchievementId'
@@ -27,7 +23,7 @@ paths:
           $ref: '#/components/responses/Achievement'
         404:
           $ref: '#/components/responses/NotFound'
-  /achievements/{achievementId}/completed-achievements:
+  /achievements/{achievementId}/completions:
     description: Get all completions for given the achievement
     parameters:
       - $ref: '#/components/parameters/AchievementId'
@@ -39,8 +35,25 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
     post:
-      operationId: post /achievements/{achievementId}/completions
       description: Complete the achievement as the logged in user, or add a completion if already completed
+      operationId: post /achievements/{achievementId}/completions
+      parameters:
+        - $ref: '#/components/parameters/AchievementId'
+        - $ref: '#/components/parameters/Action'
+      responses:
+        200:
+          $ref: '#/components/responses/CompletedAchievement'
+        201:
+          $ref: '#/components/responses/CompletedAchievement'
+        400:
+          $ref: '#/components/responses/BadRequestCompleteAchievement'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+    put:
+      description: Complete the achievement as the logged in user if not completed previously
+      operationId: put /achievements/{achievementId}/completions
       parameters:
         - $ref: '#/components/parameters/AchievementId'
       responses:
@@ -94,34 +107,36 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
-  /users/{userId}/completed-achievements:
+  /users/{userId}/completions:
     description: Get a list of all the achievements, completed by the given user
     parameters:
       - $ref: '#/components/parameters/UserId'
     get:
-      operationId: get /users/{userId}/completed-achievements
+      operationId: get /users/{userId}/completions
       responses:
         200:
           $ref: '#/components/responses/CompletedAchievementList'
         401:
           $ref: '#/components/responses/Unauthorized'
-  /users/{userId}/completed-achievements/{achievementId}:
+  /users/{userId}/completions/{achievementId}:
     parameters:
       - $ref: '#/components/parameters/UserId'
       - $ref: '#/components/parameters/AchievementId'
     get:
-      operationId: get /users/{userId}/completed-achievements/{completedAchievementId}
+      operationId: get /users/{userId}/completions/{completedAchievementId}
       responses:
         200:
           $ref: '#/components/responses/CompletedAchievement'
         401:
           $ref: '#/components/responses/Unauthorized'
     delete:
-      operationId: delete /users/{userId}/completed-achievements/{completedAchievementId}
+      operationId: delete /users/{userId}/completions/{completedAchievementId}
       description: Cancel achievement completion
       responses:
         204:
           description: Achievement completion cancelled
+        400:
+          $ref: '#/components/responses/BadRequestCompleteAchievement'
         401:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -137,32 +152,52 @@ paths:
 components:
   parameters:
     AchievementId:
+      description: The id of the achievement to get
       in: path
       name: achievementId
       schema:
         type: integer
       required: true
-      description: The id of the achievement to get
     UserId:
+      description: Either a numerical id, or special value "me", which refers to the logged in user
       in: path
       name: userId
       required: true
-      description: Either a numerical id, or special value "me", which refers to the logged in user
       schema:
         oneOf:
           - type: integer
           - type: string
             enum:
               - me
+    Action:
+      description: Whether to complete or cancel achievement
+      in: query
+      name: action
+      required: false
+      schema:
+        type: string
+        enum:
+          - complete
+          - cancel
+        default: complete
   schemas:
     Achievement:
       type: object
       required:
-        - _links
+        - type
         - id
+        - _links
         - title
         - points
+        - requires
+        - required-by
+        - max-completions
       properties:
+        type:
+          description: Always "achievement"
+          type: string
+          enum:
+            - achievement
         _links:
           type: object
           required:
@@ -177,10 +212,6 @@ components:
               type: string
               format: uri
               description: A link to a list of completions for the achievement
-        type:
-          type: string
-          enum:
-            - achievement
         title:
           type: string
           description: Title of the achievement
@@ -194,12 +225,12 @@ components:
             type: object
             required:
               - id
-              - self
+              - href
             properties:
               id:
                 type: string
                 description: Id of the achievement
-              self:
+              href:
                 type: string
                 description: A link to the achievement
         requires:
@@ -209,65 +240,57 @@ components:
             type: object
             required:
               - id
-              - self
+              - href
             properties:
               id:
                 type: string
                 description: Id of the achievement
-              self:
+              href:
                 type: string
                 description: A link to the achievement
+        max-completions:
+          type: integer
+          description: How many times this achievement can be completed by a single user
       example:
         {
+          "id": 13,
           "type": "achievement",
           "_links": {
             "self": "/achievements/13",
             "completions": "/achievements/13/completions"
           },
-          "id": 13,
           "title": "Example achievement",
           "points": 100,
           "required-by": [ {
              "id": 15,
-             "self": "/achievement/15"
+             "href": "/achievement/10"
           } ],
           "requires": [ {
             "id": 10,
-            "self": "/achievement/10"
-          } ]
+            "href": "/achievement/15"
+          } ],
+          "max-completions": 1
         }
     AchievementArray:
       type: array
       items:
         $ref: '#/components/schemas/Achievement'
-      example:
-        [
-          {
-            "type": "achievement",
-            "_links": {
-              "self": "/achievements/13",
-              "required-by": [
-                  "/achievement/15",
-              ],
-              "requires": [
-                  "/achievement/10"
-              ]
-            },
-            "id": 13,
-            "title": "Example achievement",
-            "points": 100
-          }
-        ]
     User:
       type: object
       required:
         - id
+        - type
         - _links
         - name
         - imageUrl
       properties:
         id:
           type: string
+        type:
+          type: string
+          description: Always "user"
+          enum:
+            - user
         _links:
           type: object
           properties:
@@ -286,6 +309,7 @@ components:
       example:
         {
           "id": 7,
+          "type": "user",
           "_links": {
             "self": "/users/7",
             "completed-achievements": "/users/7/completed-achievements"
@@ -300,11 +324,18 @@ components:
     CompletedAchievement:
       type: object
       required:
+        - type
         - _links
-        - userId
-        - achievementId
-        - completionDate
+        - user-id
+        - achievement-id
+        - completion-date
+        - completed-times
       properties:
+        type:
+          description: Always "completed-achievement"
+          type: string
+          enum:
+            - completed-achievement
         _links:
           type: object
           required:
@@ -320,16 +351,19 @@ components:
               type: string
             user:
               description: A link to the user that completed the achievement
-        userId:
+        user-id:
           description: Id of the user who completed the achievement
           type: number
-        achievementId:
+        achievement-id:
           description: Id of the completed achievement
           type: number
-        completionDate:
-          description: Date when the achievement was completed
+        completion-date:
+          description: Date when the achievement was completed for the first time by the user
           type: string
           format: date-time
+        completed-times:
+          description: How many times the user has completed the achievement
+          type: integer
       example:
         {
           "_links": [
@@ -337,9 +371,11 @@ components:
               "achievement": "/achievements/3",
               "user": "/users/7"
           ],
-          "userId": 7,
-          "achievementId": 3,
-          "completionDate": "2017-07-21T17:32:28Z"
+          "user-id": 7,
+          "achievement-id": 3,
+          "completion-date": "2017-07-21T17:32:28Z",
+          "completed-times": 1
+
         }
     CompletedAchievementArray:
       type: array
@@ -347,11 +383,20 @@ components:
         $ref: '#/components/schemas/CompletedAchievement'
     Error:
       type: object
+      required:
+        - type
+        - reason
       properties:
+        type:
+          description: Always "error"
+          type: string
+          enum:
+            - error
         reason:
+          description: User readable error message
           type: string
       example: {
-        "reason": "No such user"
+        "reason": "There was an error handling the request"
       }
   responses:
     Achievement:
@@ -391,7 +436,7 @@ components:
           schema:
             $ref: '#/components/schemas/CompletedAchievementArray'
     BadRequestCompleteAchievement:
-      description: Required achievement is not completed
+      description: Error related to achievement requirements
       content:
         application/json:
           schema:

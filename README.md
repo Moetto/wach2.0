@@ -17,6 +17,8 @@ production ready. Until then, I'll work on whatever catches my fancy.
 Run:\
 `./gradlew build`
 
+The command builds a docker image tagged with `wach:dev` and documentation found at [api-doc/build/swagger-ui/index.html](api-doc/build/swagger-ui/index.html)
+
 ## Running
 Run:\
 `./gradlew run`
